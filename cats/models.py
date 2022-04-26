@@ -25,7 +25,29 @@ class Cat(models.Model):
     birth_year = models.IntegerField()
     owner = models.ForeignKey(
         User, related_name='cats', on_delete=models.CASCADE)
-    achievements = models.ManyToManyField(Achievement, through='AchievementCat')
+    achievements = models.ManyToManyField(
+        Achievement,
+        through='AchievementCat'
+    )
+
+    class Meta:
+        # Для сериализаторов в DRF есть несколько встроенных
+        # классов-валидаторов, среди них есть UniqueValidator и
+        # UniqueTogetherValidator.
+        # В базе данных не должно быть двух или более записей, у которых имя
+        # котика и хозяин совпадают.
+        # unique_together = ('name', 'owner')
+
+        # Но документация Django рекомендует вместо unique_together
+        # использовать UniqueConstraint: этот способ обеспечивает большую
+        # функциональность, а unique_together может быть признан устаревшим в
+        # будущем.
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'owner'],
+                name='unique_name_owner'
+            )
+        ]
 
     def __str__(self):
         return self.name
